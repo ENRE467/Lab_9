@@ -106,7 +106,7 @@ int main(int argc, char **argv) {
     geometry_msgs::Pose start_pose = arm_move_group.getCurrentPose().pose;
 
     geometry_msgs::Pose end_pose = start_pose;
-    end_pose.position.z -= 0.2;
+    end_pose.position.z -= 0.05;
 
     // Define waypoints for the cartesian path
     std::vector<geometry_msgs::Pose> waypoints;
