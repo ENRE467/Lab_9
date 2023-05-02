@@ -4,19 +4,17 @@
 
 PickandPlace::PickandPlace(ros::NodeHandle *nodehandle): PP{*nodehandle} {
     this->pick_detected = false;
+    this->place_detected = false;
     fiducial_sub = PP.subscribe("/logitech_webcam/fiducial_transforms", 1, &PickandPlace::Fiducial_Callback, this);
     pick_sub = PP.subscribe("/aruco_tf/picktopic", 1, &PickandPlace::Pick_Callback, this);
+    place_sub = PP.subscribe("/aruco_tf/placetopic", 1, &PickandPlace::Place_Callback, this);
 }
 
 void PickandPlace::Pick_Callback(const geometry_msgs::Pose::ConstPtr& pick) {
   if(this->pick_detected){
     this->Pick.position.x = pick->position.x;
     this->Pick.position.y = pick->position.y;
-    this->Pick.position.z = pick->position.z + 0.2;
-    // this->Pick.orientation.x = pick->orientation.x;
-    // this->Pick.orientation.y = pick->orientation.y;
-    // this->Pick.orientation.z = pick->orientation.z;
-    // this->Pick.orientation.w = pick->orientation.w;
+    this->Pick.position.z = pick->position.z;
     this->Pick.orientation.x = 1.0;
     this->Pick.orientation.y = 0.0;
     this->Pick.orientation.z = 0.0;
@@ -24,16 +22,33 @@ void PickandPlace::Pick_Callback(const geometry_msgs::Pose::ConstPtr& pick) {
   }
 }
 
+void PickandPlace::Place_Callback(const geometry_msgs::Pose::ConstPtr& place) {
+  if(this->place_detected){
+    this->Place.position.x = place->position.x;
+    this->Place.position.y = place->position.y;
+    this->Place.position.z = place->position.z;
+    this->Place.orientation.x = 1.0;
+    this->Place.orientation.y = 0.0;
+    this->Place.orientation.z = 0.0;
+    this->Place.orientation.w = 0.0;
+  }
+}
+
 void PickandPlace::Fiducial_Callback(const fiducial_msgs::FiducialTransformArray::ConstPtr& msg){
   
   if(!msg->transforms.empty()){
     for(int i = 0; i < msg->transforms.size(); i++){
+        // change these fiducial ids to the ids of the markers used for pick and place
         if(msg->transforms[i].fiducial_id == 1){
             this->pick_detected = true;
             break;
         }
+        else if(msg->transforms[i].fiducial_id == 2){
+            this->place_detected = true;
+        }
         else{
             this->pick_detected = false;
+            this->place_detected = false;
         }
     }
   }
@@ -67,57 +82,45 @@ int main(int argc, char **argv) {
   while(ros::ok()){
     ros::spinOnce();
     // ROS_INFO("Looking for Marker");
-    if(pickplace.pick_detected) break;
+    if(pickplace.pick_detected && pickplace.place_detected) break;
     r.sleep();
   }
 
-  // Pre-grasp
-  moveit::planning_interface::MoveGroupInterface::Plan pick_plan;
-
-  int flag = 0;
-  bool pick_plan_success;
-  std::string reference_frame = "base_link";
-
-  ROS_INFO("Planning to");
-  ROS_INFO("x: %f",pickplace.Pick.position.x);
-  ROS_INFO("y: %f",pickplace.Pick.position.y);
-  ROS_INFO("z: %f",pickplace.Pick.position.z);
-
-  pick_plan_success = ArmController::planToPoseTarget(planning_options,arm_move_group,pickplace.Pick,reference_frame,pick_plan);
-
-  if(pick_plan_success){
-        ROS_INFO("pick plan succeeded");
-        ros::Duration(1.0).sleep();
-        flag = 1;
-
-        arm_move_group.execute(pick_plan);
-
-    }
-    else{
-        ROS_INFO("pick plan failed");
-        flag = 0;
-  }
+  // Perform pre-grasp plan, i.e., move the gripper to above the pick position. 
   
-  if(flag){
-    // Create instance of cartesian plan (grasp)
-    moveit::planning_interface::MoveGroupInterface::Plan grasp_plan;
+  
+  
+  
+  
+  // Perform the grasp plan, i.e., move the gripper down over the block in cartesian path and close the gripper.
+  
+  
+  
+  
+  
+  // Perform the post-grasp plan, i.e., move the gripper up over the pick position such that the block comes off the table in a cartesian path.
 
-    // Get the start Pose
-    geometry_msgs::Pose start_pose = arm_move_group.getCurrentPose().pose;
 
-    geometry_msgs::Pose end_pose = start_pose;
-    end_pose.position.z -= 0.05;
 
-    // Define waypoints for the cartesian path
-    std::vector<geometry_msgs::Pose> waypoints;
-    waypoints.push_back(end_pose);
 
-    moveit_msgs::RobotTrajectory trajectory;
-    trajectory = ArmController::planCartesianPath(start_pose, waypoints, reference_frame, arm_move_group);
 
-    arm_move_group.execute(trajectory);
+  // Move the gripper to above the place position.
 
-  }
+
+
+
+
+  // Move the gripper down such that the block is about to touch the table in a cartesian path and then open the gripper.
+
+
+
+
+
+  // Move the gripper at some height above the placed block.
+  
+
+
+
 
   
 }
