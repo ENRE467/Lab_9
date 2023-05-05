@@ -41,7 +41,7 @@ source ~/workspace/devel/setup.bash
 
 7. Start up the real ur3e robot using the tablet and run the following commands in order in different terminals to initiate UR Driver Communication with gripper:
 
-```
+```console
 roslaunch ur_robot_driver ur3e_bringup.launch robot_ip:=192.168.77.22 kinematics_config:=$(rospack find ur_calibration)/calib/ur3e_calib.yaml z_height:=0.766 use_tool_communication:=true tool_voltage:=24 tool_parity:=0 tool_baud_rate:=115200 tool_stop_bits:=1 tool_rx_idle_chars:=1.5 tool_tx_idle_chars:=3.5 tool_device_name:=/tmp/ttyUR gripper:=true
 ```
 start Moveit! for UR3e:
@@ -62,7 +62,7 @@ roslaunch ur3e_moveit_config moveit_rviz.launch rviz_config:=$(rospack find ur3e
 roslaunch camera_calib_pkg extrinsic_calibration.launch aruco_tracker:=true show_output:=true
 ```
 
-9. run the following command to load your saved calibration
+9. Run the following command to load your saved calibration
 
 ```console
 roslaunch camera_calib_pkg aruco_tf.launch load_calibration:=true 
